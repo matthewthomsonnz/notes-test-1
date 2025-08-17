@@ -62,8 +62,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import Draggable from 'vuedraggable';
+
+const STORAGE_KEY = 'notes-poc-v1';
 
 const notes = ref([
   { id: 1, title: 'Inbox Zero', body: 'Process emails twice a day only.' },
@@ -144,11 +146,49 @@ function deleteNote(id) {
   }
 }
 
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        notes.value = parsed;
+        const maxId = parsed.reduce((m, n) => typeof n.id === 'number' && n.id > m ? n.id : m, 0);
+        if (maxId > idCounter) idCounter = maxId;
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load from storage', e);
+  }
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes.value));
+  } catch (e) {
+    console.warn('Failed to save notes', e);
+  }
+}
+
+let saveTimer = null;
+watch(notes, () => {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToStorage, 250);
+}, { deep: true });
+
+function handleBeforeUnload() {
+  saveToStorage();
+}
+
 onMounted(() => {
+  loadFromStorage();
   window.addEventListener('keydown', handleKey);
+  window.addEventListener('beforeunload', handleBeforeUnload);
 });
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKey);
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+  clearTimeout(saveTimer);
 });
 </script>
 
