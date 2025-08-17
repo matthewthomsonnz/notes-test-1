@@ -9,7 +9,8 @@
         @change="onImportFile"
         hidden
       />
-      <button type="button" class="notes-list__btn" @click="triggerImport" :disabled="expandedId !== null">Import</button>
+  <button type="button" class="notes-list__btn" @click="addNote" :disabled="expandedId !== null">Add Note</button>
+  <button type="button" class="notes-list__btn" @click="triggerImport" :disabled="expandedId !== null">Import</button>
       <button type="button" class="notes-list__btn" @click="exportNotes" :disabled="expandedId !== null">Export</button>
     </div>
     <Draggable v-model="notes" item-key="id" handle=".notes-list__item-handle" :animation="180" ghost-class="notes-list__item--ghost" :disabled="expandedId !== null">
@@ -26,6 +27,14 @@
             title="Drag to reorder"
             @click.stop
           >⋮⋮</span>
+          <button
+            v-if="expandedId !== element.id"
+            class="notes-list__item-delete"
+            type="button"
+            aria-label="Delete note"
+            title="Delete note"
+            @click.stop="deleteNote(element.id)"
+          >🗑</button>
           <button
             v-else
             class="notes-list__item-close"
@@ -62,6 +71,7 @@ const notes = ref([
 
 const expandedId = ref(null);
 const importInput = ref(null);
+let idCounter = 1000;
 
 function onContainerClick(id) {
   if (expandedId.value == null) {
@@ -88,7 +98,9 @@ function exportNotes() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  } 
+  } catch (err) {
+    console.error('Export failed', err);
+  }
 }
 
 function triggerImport() {
@@ -107,9 +119,29 @@ function onImportFile(e) {
       if (Array.isArray(parsed)) {
           notes.value = parsed;
       }
+    } catch (err) {
+      console.error('Import failed', err);
     }
   };
   reader.readAsText(file);
+}
+
+function addNote() {
+  const id = ++idCounter;
+  notes.value.unshift({ id, title: 'New Note', body: '' });
+  expandedId.value = id;
+  queueMicrotask(() => {
+    const el = document.querySelector('.notes-list__item--expanded .notes-list__item-title');
+    if (el) el.focus();
+  });
+}
+
+function deleteNote(id) {
+  const idx = notes.value.findIndex(n => n.id === id);
+  if (idx !== -1) {
+    notes.value.splice(idx, 1);
+    if (expandedId.value === id) expandedId.value = null;
+  }
 }
 
 onMounted(() => {
@@ -133,6 +165,9 @@ onBeforeUnmount(() => {
  .notes-list__item-body { margin: 0; font-size: .8rem; color: #444; }
  .notes-list__item-handle { position: absolute; left: .5rem; top: .65rem; cursor: grab; user-select: none; font-size: .9rem; letter-spacing: -2px; color: #666; }
  .notes-list__item-handle:active { cursor: grabbing; }
+  .notes-list__item-delete { position:absolute; top:.45rem; right:.45rem; background:transparent; border:none; cursor:pointer; font-size:.9rem; line-height:1; color:#b23a3a; padding:.25rem; border-radius:4px; }
+  .notes-list__item-delete:hover { background:#ffecec; }
+  .notes-list__item-delete:active { transform:translateY(1px); }
  .notes-list__item--ghost { opacity: .4; }
   .notes-list__item--expanded { position: fixed; inset: 0; z-index: 999; margin: 0; border-radius: 0; padding: 3.25rem 3rem 2.5rem 3rem; box-shadow: none; overflow:auto; }
   .notes-list__item-close { position: absolute; top: .9rem; right: 1rem; background: #1e1f26; color: #fff; border: none; font: inherit; font-size: .85rem; line-height:1; padding:.45rem .55rem; border-radius: 4px; cursor: pointer; }
