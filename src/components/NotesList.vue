@@ -9,42 +9,44 @@
         hidden
         @change="onImportFile"
       />
-  <button type="button" class="notes-list__btn" :disabled="expandedId !== null" @click="addNote">Add Note</button>
-  <button type="button" class="notes-list__btn" :disabled="expandedId !== null" @click="triggerImport">Import</button>
-      <button type="button" class="notes-list__btn" :disabled="expandedId !== null" @click="exportNotes">Export</button>
+  <button type="button" class="notes-list__btn" @click="addNote">Add Note</button>
+  <button type="button" class="notes-list__btn" @click="triggerImport">Import</button>
+      <button type="button" class="notes-list__btn" @click="exportNotes">Export</button>
     </div>
-    <Draggable v-model="notes" item-key="id" :animation="180" ghost-class="notes-list__item--ghost" :disabled="expandedId !== null">
+    <Draggable
+      v-model="notes"
+      item-key="id"
+      :animation="180"
+      ghost-class="notes-list__item--ghost"
+    >
       <template #item="{ element, index }">
         <article
           class="notes-list__item"
-          :class="{ 'notes-list__item--expanded': expandedId === element.id }"
           :data-index="index"
-          @click="onContainerClick(element.id)"
         >
+          <span
+            class="notes-list__item-handle"
+            title="Drag to reorder"
+            @click.stop
+          >⋮⋮</span>
           <button
-            v-if="expandedId !== element.id"
             class="notes-list__item-delete"
             type="button"
             aria-label="Delete note"
             title="Delete note"
             @click.stop="deleteNote(element.id)"
           >🗑</button>
-          <button
-            v-else
-            class="notes-list__item-close"
-            type="button"
-            aria-label="Close"
-            @click.stop="expandedId = null"
-          >✕</button>
           <div class="notes-list__item-content">
             <textarea
-                v-model="element.title"
-
+              v-model="element.title"
               rows="1"
               class="notes-list__item-title"
               @input="autoResize"
-              @click.stop="expandedId === element.id ? null : onContainerClick(element.id)"
             ></textarea>
+            <TodoList
+              v-model="element.todos"
+              @click.stop
+            />
           </div>
         </article>
       </template>
@@ -55,35 +57,16 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import Draggable from 'vuedraggable';
+import TodoList from './TodoList.vue';
 
 const STORAGE_KEY = 'notes-poc-v1';
 
 const notes = ref([
-  { id: 1, title: 'Inbox Zero' },
+  { id: 1, title: 'Inbox Zero', todos: [] },
 ]);
 
-const expandedId = ref(null);
 const importInput = ref(null);
 let idCounter = 1000;
-
-function onContainerClick(id) {
-  if (expandedId.value == null) {
-    expandedId.value = id;
-    queueMicrotask(() => {
-      const textarea = document.querySelector('.notes-list__item--expanded .notes-list__item-title');
-      if (textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
-      }
-    })
-  }
-}
-
-function handleKey(e) {
-  if (e.key === 'Escape' && expandedId.value !== null) {
-    expandedId.value = null;
-  }
-}
 
 function exportNotes() {
   try {
@@ -128,19 +111,13 @@ function onImportFile(e) {
 
 function addNote() {
   const id = ++idCounter;
-  notes.value.unshift({ id, title: 'New Note' });
-  expandedId.value = id;
-  queueMicrotask(() => {
-    const el = document.querySelector('.notes-list__item--expanded .notes-list__item-title');
-    if (el) el.focus();
-  });
+  notes.value.unshift({ id, title: 'New Note', todos: [] });
 }
 
 function deleteNote(id) {
   const idx = notes.value.findIndex(n => n.id === id);
   if (idx !== -1) {
     notes.value.splice(idx, 1);
-    if (expandedId.value === id) expandedId.value = null;
   }
 }
 
@@ -186,7 +163,6 @@ function handleBeforeUnload() {
 
 onMounted(() => {
   loadFromStorage();
-  window.addEventListener('keydown', handleKey);
   window.addEventListener('beforeunload', handleBeforeUnload);
 
   queueMicrotask(() => {
@@ -198,7 +174,6 @@ onMounted(() => {
   });
 });
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKey);
   window.removeEventListener('beforeunload', handleBeforeUnload);
   clearTimeout(saveTimer);
 });
@@ -219,12 +194,9 @@ onBeforeUnmount(() => {
    outline: none;
    resize:none;
    line-height:1.2; }
-
-
+ .notes-list__item-handle { position: absolute; left: .5rem; top: .65rem; cursor: grab; user-select: none; font-size: .9rem; letter-spacing: -2px; color: #666; }
+ .notes-list__item-handle:active { cursor: grabbing; }
+ .notes-list__item-delete { position:absolute; top:.45rem; right:.45rem; background:transparent; border:none; cursor:pointer; font-size:.9rem; line-height:1; color:#b23a3a; padding:.25rem; border-radius:4px; }
   .notes-list__item-delete:hover { background:#ffecec; }
   .notes-list__item-delete:active { transform:translateY(1px); }
-  .notes-list__item--expanded { position: fixed; inset: 0; z-index: 999; margin: 0; border-radius: 0; padding: 3.25rem 3rem 2.5rem 3rem; box-shadow: none; overflow:auto; }
-  .notes-list__item-close { position: absolute; top: .9rem; right: 1rem; background: #1e1f26; color: #fff; border: none; font: inherit; font-size: .85rem; line-height:1; padding:.45rem .55rem; border-radius: 4px; cursor: pointer; }
-  .notes-list__item-close:hover { background: #2c2e37; }
-  .notes-list__item-close:active { transform: translateY(1px); }
 </style>
