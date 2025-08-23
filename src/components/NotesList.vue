@@ -43,14 +43,9 @@
             @click.stop="expandedId = null"
           >✕</button>
           <div class="notes-list__item-content">
-            <input
+            <textarea
               class="notes-list__item-title"
               v-model="element.title"
-              @click.stop="expandedId === element.id ? null : onContainerClick(element.id)"
-            ></input>
-            <textarea
-              class="notes-list__item-body"
-              v-model="element.body"
               @click.stop="expandedId === element.id ? null : onContainerClick(element.id)"
             ></textarea>
           </div>
@@ -67,7 +62,7 @@ import Draggable from 'vuedraggable';
 const STORAGE_KEY = 'notes-poc-v1';
 
 const notes = ref([
-  { id: 1, title: 'Inbox Zero', body: 'Process emails twice a day only.' },
+  { id: 1, title: 'Inbox Zero' },
 ]);
 
 const expandedId = ref(null);
@@ -129,7 +124,7 @@ function onImportFile(e) {
 
 function addNote() {
   const id = ++idCounter;
-  notes.value.unshift({ id, title: 'New Note', body: '' });
+  notes.value.unshift({ id, title: 'New Note' });
   expandedId.value = id;
   queueMicrotask(() => {
     const el = document.querySelector('.notes-list__item--expanded .notes-list__item-title');
@@ -201,13 +196,11 @@ onBeforeUnmount(() => {
  .notes-list__import-input { display:none; }
  .notes-list__item { background: #fff; border: 1px solid #d9dde3; border-radius: 6px; padding: .75rem .9rem .75rem 2.25rem; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
  .notes-list__item-title { font-size: .95rem; margin: 0 0 .25rem; line-height:1.2; }
- .notes-list__item-body { margin: 0; font-size: .8rem; color: #444; }
  .notes-list__item-handle { position: absolute; left: .5rem; top: .65rem; cursor: grab; user-select: none; font-size: .9rem; letter-spacing: -2px; color: #666; }
  .notes-list__item-handle:active { cursor: grabbing; }
   .notes-list__item-delete { position:absolute; top:.45rem; right:.45rem; background:transparent; border:none; cursor:pointer; font-size:.9rem; line-height:1; color:#b23a3a; padding:.25rem; border-radius:4px; }
   .notes-list__item-delete:hover { background:#ffecec; }
   .notes-list__item-delete:active { transform:translateY(1px); }
- .notes-list__item--ghost { opacity: .4; }
   .notes-list__item--expanded { position: fixed; inset: 0; z-index: 999; margin: 0; border-radius: 0; padding: 3.25rem 3rem 2.5rem 3rem; box-shadow: none; overflow:auto; }
   .notes-list__item-close { position: absolute; top: .9rem; right: 1rem; background: #1e1f26; color: #fff; border: none; font: inherit; font-size: .85rem; line-height:1; padding:.45rem .55rem; border-radius: 4px; cursor: pointer; }
   .notes-list__item-close:hover { background: #2c2e37; }
@@ -216,5 +209,4 @@ onBeforeUnmount(() => {
   .notes-list__item--expanded .notes-list__item-body { font-size: 1rem; line-height:1.5; }
   .notes-list__item--expanded [contenteditable="true"] { outline: 2px solid transparent; transition: outline-color .15s; }
   .notes-list__item--expanded [contenteditable="true"]:focus { outline-color: #4a93ff; }
- .notes-list__hint { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: #6a717d; margin: .5rem 0 0; }
 </style>
