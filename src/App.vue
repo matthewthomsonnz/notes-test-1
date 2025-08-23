@@ -5,7 +5,7 @@
       <button class="install-btn" @click="installApp">Install</button>
       <button class="dismiss-btn" @click="dismissInstall">×</button>
     </div>
-    <h1>Notes (Proof of Concept)</h1>
+    <h1>Notes</h1>
     <NotesList />
   </main>
 </template>

@@ -20,6 +20,8 @@
           class="todo-list__input"
           placeholder="Todo item..."
           @input="updateTodoText(todo.id, $event.target.value)"
+          @paste="handlePaste"
+          @touchstart="handleTouchStart"
         >
         <button
           type="button"
@@ -78,6 +80,22 @@ function updateTodoText(id, text) {
   );
   todos.value = newTodos;
 }
+
+function handlePaste(event) {
+  // Ensure paste works properly on mobile
+  setTimeout(() => {
+    // Allow the paste to complete and trigger any necessary updates
+    event.target.dispatchEvent(new Event('input', { bubbles: true }));
+  }, 0);
+}
+
+function handleTouchStart(event) {
+  // Ensure the input is properly focused on mobile
+  const target = event.target;
+  if (target && typeof target.focus === 'function') {
+    target.focus();
+  }
+}
 </script>
 
 <style scoped>
@@ -124,6 +142,10 @@ function updateTodoText(id, text) {
   padding: 0.25rem;
   border-radius: 3px;
   font-size: 0.875rem;
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: manipulation;
+  -webkit-touch-callout: default;
 }
 
 .todo-list__delete {
