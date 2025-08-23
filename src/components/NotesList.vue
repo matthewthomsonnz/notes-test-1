@@ -9,72 +9,84 @@
         hidden
         @change="onImportFile"
       />
-  <button type="button" class="notes-list__btn" @click="triggerImport">Import</button>
+      <button type="button" class="notes-list__btn" @click="triggerImport">Import</button>
       <button type="button" class="notes-list__btn" @click="exportNotes">Export</button>
     </div>
 
-    <!-- Add note button at the top -->
-    <div class="notes-list__add-button-container">
-      <button
-        type="button"
-        class="notes-list__add-btn"
-        @click="addNoteAtPosition(0)"
-        title="Add note here"
+    <div class="notes-list__content">
+      <!-- Add note button at the top -->
+      <div class="notes-list__add-button-container">
+        <button
+          type="button"
+          class="notes-list__add-btn"
+          @click="addNoteAtPosition(0)"
+          title="Add note here"
+        >
+          + Add Note
+        </button>
+      </div>
+
+      <Draggable
+        v-model="notes"
+        item-key="id"
+        :animation="180"
+        :delay="100"
+        :delayOnTouchStart="true"
+        :touchStartThreshold="5"
+        ghost-class="notes-list__item--ghost"
+        tag="div"
+        class="notes-list__draggable-container"
       >
-        + Add Note
-      </button>
-    </div>
-
-    <Draggable
-      v-model="notes"
-      item-key="id"
-      :animation="180"
-      ghost-class="notes-list__item--ghost"
-    >
-      <template #item="{ element, index }">
-        <div>
-          <article
-            class="notes-list__item"
-            :data-index="index"
-          >
-            <button
-              class="notes-list__item-delete"
-              type="button"
-              aria-label="Delete note"
-              title="Delete note"
-              @click.stop="deleteNote(element.id)"
-            >🗑</button>
-            <div class="notes-list__item-content">
-              <textarea
-                v-model="element.title"
-                rows="1"
-                class="notes-list__item-title"
-                @input="autoResize"
-                @paste="handlePaste"
-                @touchstart="handleTouchStart"
-                :data-note-id="element.id"
-              ></textarea>
-              <TodoList
-                v-model="element.todos"
-                @click.stop
-              />
-            </div>
-          </article>
-
-          <!-- Add note button after each item -->
-          <div class="notes-list__add-button-container">
-            <button
-              type="button"
-              class="notes-list__add-btn"
-              @click="addNoteAtPosition(index + 1)"
-              title="Add note here"
+        <template #item="{ element, index }">
+          <div class="notes-list__item-wrapper">
+            <article
+              class="notes-list__item"
+              :data-index="index"
             >
-              + Add Note
-            </button>
+              <span
+                class="notes-list__item-handle"
+                title="Drag to reorder"
+                @click.stop
+              >⋮⋮</span>
+              <button
+                class="notes-list__item-delete"
+                type="button"
+                aria-label="Delete note"
+                title="Delete note"
+                @click.stop="deleteNote(element.id)"
+              >🗑</button>
+              <div class="notes-list__item-content">
+                <textarea
+                  v-model="element.title"
+                  rows="1"
+                  class="notes-list__item-title"
+                  @input="autoResize"
+                  @paste="handlePaste"
+                  @touchstart="handleTouchStart"
+                  :data-note-id="element.id"
+                ></textarea>
+                <TodoList
+                  v-model="element.todos"
+                  @click.stop
+                />
+              </div>
+            </article>
+
+            <!-- Add note button after each item -->
+            <div class="notes-list__add-button-container">
+              <button
+                type="button"
+                class="notes-list__add-btn"
+                @click="addNoteAtPosition(index + 1)"
+                title="Add note here"
+              >
+                + Add Note
+              </button>
+            </div>
           </div>
-        </div>
-      </template>
-    </Draggable>
+        </template>
+      </Draggable>
+    </div>
   </div>
 </template>
 
