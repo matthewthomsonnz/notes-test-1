@@ -57,7 +57,6 @@
         </article>
       </template>
     </Draggable>
-    <p class="notes-list__hint">Drag handle to reorder. Click a note to expand. Press ESC or click backdrop area to close.</p>
   </div>
 </template>
 
